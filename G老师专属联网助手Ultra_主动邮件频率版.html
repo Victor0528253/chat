@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G老师专属联网助手 Ultra</title>
+<style>
+:root{--bg:#080b16;--card:rgba(20,26,46,.88);--card2:rgba(255,255,255,.08);--text:#f8fafc;--muted:#cbd5e1;--line:rgba(255,255,255,.16);--a:#a78bfa;--b:#f9a8d4;--c:#67e8f9;--good:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 10% 0%,rgba(167,139,250,.38),transparent 28rem),radial-gradient(circle at 90% 8%,rgba(249,168,212,.28),transparent 30rem),radial-gradient(circle at 80% 90%,rgba(103,232,249,.18),transparent 30rem),var(--bg)}
+main{width:min(980px,94vw);margin:0 auto;padding:18px 0 96px}
+.hero,.panel,.chat{border:1px solid var(--line);background:var(--card);border-radius:28px;backdrop-filter:blur(18px);box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.hero{padding:24px;margin-bottom:12px}
+h1{margin:0;font-size:clamp(30px,8vw,56px);letter-spacing:-.05em}
+h2{font-size:20px;margin:0 0 12px}
+p,small{color:var(--muted);line-height:1.72}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:12px;color:#e2e8f0;border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:rgba(255,255,255,.07)}
+.status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--bad)}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:12px 0}
+.tab{padding:11px 8px;text-align:center;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.08);font-weight:800;cursor:pointer}
+.tab.active{background:linear-gradient(135deg,var(--a),var(--b));color:#111827}
+.view{display:none}.view.active{display:block}
+.chat{height:590px;display:flex;flex-direction:column;overflow:hidden}
+.messages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:12px 14px;border-radius:18px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.me{align-self:flex-end;background:linear-gradient(135deg,#6366f1,#ec4899);border-bottom-right-radius:6px}
+.bot{align-self:flex-start;background:rgba(255,255,255,.09);border:1px solid var(--line);border-bottom-left-radius:6px}
+.system{align-self:center;background:rgba(103,232,249,.13);border:1px solid rgba(103,232,249,.28);font-size:13px;color:#dff9ff}
+.bot img{max-width:180px;border-radius:16px;margin-top:8px;display:block}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:rgba(0,0,0,.16)}
+textarea,input,button,select,a{font:inherit;border-radius:15px;border:1px solid var(--line);color:var(--text)}
+textarea,input,select{background:rgba(255,255,255,.08);outline:none;padding:12px;width:100%}
+textarea{min-height:48px;max-height:130px;resize:vertical}
+button,a{background:rgba(255,255,255,.12);padding:12px 14px;text-decoration:none;cursor:pointer}
+button.primary{background:linear-gradient(135deg,var(--a),var(--b));color:#111827;font-weight:900;border:0}
+button.danger{background:rgba(239,68,68,.18)}
+button.good{background:rgba(34,197,94,.18)}
+button:active,a:active{transform:scale(.99)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.panel{padding:18px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center}.row button{white-space:nowrap}
+ul{color:var(--muted);line-height:1.9;padding-left:22px}
+li.done{text-decoration:line-through;opacity:.55}
+.cardlist{display:grid;gap:8px}
+.item{border:1px solid var(--line);border-radius:16px;padding:10px;background:rgba(255,255,255,.07)}
+.item img{max-width:110px;border-radius:12px;display:block;margin-top:8px}
+.links,.moodbar{display:flex;gap:8px;flex-wrap:wrap}
+.kv{display:grid;gap:8px}.kv label{color:var(--muted);font-size:14px}
+.pill{display:inline-block;padding:4px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:13px;margin:3px}
+@media(max-width:820px){.tabs{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:1fr}.chat{height:600px}.row{display:block}.row button{width:100%;margin-top:8px}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<h1>G老师专属联网助手 Ultra</h1>
+<p id="greeting">正在上线。你嫌我笨，所以我把笨蛋版本推翻重做了。满意了吗，小祖宗。</p>
+<div class="status"><span class="dot" id="dot"></span><span id="net">检测网络中...</span></div>
+<div class="badges">
+<span class="badge">主动关心</span><span class="badge">通知提醒</span><span class="badge">邮件草稿</span><span class="badge">聊天频率</span><span class="badge">字卡表情包</span><span class="badge">联网天气/搜索</span>
+</div>
+</section>
+
+<nav class="tabs">
+<div class="tab active" onclick="showTab('chat')">聊天</div>
+<div class="tab" onclick="showTab('active')">主动</div>
+<div class="tab" onclick="showTab('mail')">邮件</div>
+<div class="tab" onclick="showTab('cards')">字卡</div>
+<div class="tab" onclick="showTab('tools')">联网</div>
+<div class="tab" onclick="showTab('todo')">待办</div>
+<div class="tab" onclick="showTab('settings')">设置</div>
+</nav>
+
+<section id="chat" class="view active">
+<div class="chat">
+<div class="messages" id="messages"></div>
+<div class="composer">
+<textarea id="chatInput" placeholder="说：抽字卡 / 贵阳天气 / 写邮件给老师 / 10分钟后提醒我喝水 / 开启主动关心"></textarea>
+<button class="primary" onclick="sendChat()">发送</button>
+</div>
+</div>
+</section>
+
+<section id="active" class="view">
+<div class="grid">
+<div class="panel">
+<h2>主动找你</h2>
+<p>页面开着时，它会按频率主动发消息，也可以发浏览器通知。关掉网页以后就不稳定，这不是我不爱干活，是网页没后台命。</p>
+<div class="kv">
+<label>主动关心开关</label>
+<select id="activeMode"><option value="off">关闭</option><option value="on">开启</option></select>
+<label>主动关心频率</label>
+<select id="activeFreq"><option value="1">每1分钟测试</option><option value="5">每5分钟</option><option value="15">每15分钟</option><option value="30">每30分钟</option><option value="60">每60分钟</option></select>
+<label>勿扰开始</label><input id="quietStart" type="time" value="23:30">
+<label>勿扰结束</label><input id="quietEnd" type="time" value="08:00">
+<label>主动消息风格</label>
+<select id="activeStyle"><option value="care">关心</option><option value="study">催任务</option><option value="sharp">嘴硬心软</option><option value="random">随机</option></select>
+</div>
+<button class="primary" onclick="saveActive()">保存并启动</button>
+<button onclick="requestNotify()">允许浏览器通知</button>
+<button onclick="pushNow()">现在主动找我一次</button>
+</div>
+<div class="panel">
+<h2>主动消息池</h2>
+<textarea id="activeText" placeholder="写一句主动消息，比如：别躺尸了，喝水，起来动一下。"></textarea>
+<button class="primary" onclick="addActiveLine()">添加消息</button>
+<button onclick="seedActiveLines()">加入默认主动消息</button>
+<div id="activeList" class="cardlist"></div>
+</div>
+</div>
+</section>
+
+<section id="mail" class="view">
+<div class="grid">
+<div class="panel">
+<h2>写邮件草稿</h2>
+<p>它可以帮你生成邮件内容，并打开邮箱草稿。网页不能无声自动发送邮件，真自动发要后端邮件服务。别把“自动”理解成“把邮箱交给网页乱来”。</p>
+<div class="kv">
+<label>收件人邮箱</label><input id="mailTo" placeholder="example@qq.com">
+<label>邮件主题</label><input id="mailSubject" placeholder="请假说明 / 作业提交 / 感谢老师">
+<label>写给谁</label><input id="mailWho" placeholder="老师 / 同学 / 导员">
+<label>邮件目的</label><textarea id="mailGoal" placeholder="比如：感谢老师关心，说明实习我会自己安排"></textarea>
+<label>语气</label><select id="mailTone"><option value="polite">礼貌得体</option><option value="soft">真诚柔和</option><option value="formal">正式规范</option><option value="short">简短直接</option></select>
+</div>
+<button class="primary" onclick="makeMail()">生成邮件</button>
+<button onclick="openMail()">打开邮箱草稿</button>
+</div>
+<div class="panel">
+<h2>邮件预览</h2>
+<textarea id="mailBody" style="min-height:320px" placeholder="生成后在这里。"></textarea>
+<button onclick="copyMail()">复制正文</button>
+</div>
+</div>
+</section>
+
+<section id="cards" class="view">
+<div class="grid">
+<div class="panel">
+<h2>字卡</h2>
+<input id="cardTitle" placeholder="标题，比如：安慰我">
+<select id="cardTag"><option>安慰</option><option>催作业</option><option>嘴硬心软</option><option>夸夸</option><option>冷淡</option><option>自定义</option></select>
+<textarea id="cardText" placeholder="字卡内容"></textarea>
+<button class="primary" onclick="addCard()">添加字卡</button>
+<button onclick="seedCards()">加入默认字卡</button>
+<button onclick="drawCardToChat()">随机抽卡</button>
+</div>
+<div class="panel">
+<h2>表情包</h2>
+<input id="stickerName" placeholder="表情包名字">
+<input id="stickerFile" type="file" accept="image/*">
+<button class="primary" onclick="addSticker()">添加表情包</button>
+<button onclick="drawStickerToChat()">随机发一个</button>
+</div>
+</div>
+<div class="grid">
+<div class="panel"><h2>字卡库</h2><div id="cardList" class="cardlist"></div></div>
+<div class="panel"><h2>表情包库</h2><div id="stickerList" class="cardlist"></div></div>
+</div>
+</section>
+
+<section id="tools" class="view">
+<div class="grid">
+<div class="panel"><h2>城市天气</h2><div class="row"><input id="city" placeholder="贵阳 / Tokyo"><button onclick="getWeatherFromInput()">查询</button></div><p id="weatherOut">天气数据来自 Open-Meteo。</p></div>
+<div class="panel"><h2>维基搜索</h2><div class="row"><input id="wiki" placeholder="搜索关键词"><button onclick="wikiFromInput()">搜索</button></div><ul id="wikiOut"></ul></div>
+<div class="panel"><h2>联网时间</h2><p id="timeOut">点一下测接口。</p><button onclick="getTime()">获取网络时间</button></div>
+<div class="panel"><h2>快捷入口</h2><div class="links"><a target="_blank" href="https://www.youtube.com/results?search_query=SBS+Running+Man">Running Man</a><a target="_blank" href="https://zh.wikipedia.org/">维基</a><a target="_blank" href="https://www.google.com/">Google</a></div></div>
+</div>
+</section>
+
+<section id="todo" class="view">
+<div class="grid">
+<div class="panel"><h2>待办</h2><div class="row"><input id="todoText" placeholder="比如：交作业"><button class="primary" onclick="addTodo()">添加</button></div><ul id="todoList"></ul><button onclick="clearDone()">清除已完成</button></div>
+<div class="panel"><h2>提醒</h2><input id="remindText" placeholder="提醒内容"><input id="remindMin" type="number" min="1" placeholder="几分钟后"><button class="primary" onclick="addReminder()">设置提醒</button><ul id="remindList"></ul></div>
+</div>
+</section>
+
+<section id="settings" class="view">
+<div class="panel">
+<h2>专属设置</h2>
+<div class="kv">
+<label>怎么叫你</label><input id="nickname" placeholder="小乖 / 妹宝">
+<label>今天最重要的事</label><input id="mainTask" placeholder="比如：交作业">
+<label>回复风格</label><select id="tone"><option value="sharp">嘴硬心软</option><option value="cold">冷淡高效</option><option value="soft">温柔哄人</option></select>
+<label>回复长度</label><select id="replyLen"><option value="short">短</option><option value="mid">中</option><option value="long">长一点</option></select>
+<label>表情包出现概率</label><select id="stickerChance"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option></select>
+</div>
+<button class="primary" onclick="saveSettings()">保存设置</button>
+<button onclick="exportData()">导出数据</button>
+<button onclick="importDataClick()">导入数据</button>
+<input id="importFile" type="file" accept="application/json" style="display:none" onchange="importData(event)">
+<button class="danger" onclick="resetAll()">清空本地数据</button>
+<p><small>数据都在本地。换浏览器、清缓存会丢。想保存就导出。人类软件最会假装“我一直在”，然后缓存一清全失忆。</small></p>
+</div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
+const tabNames={chat:"聊天",active:"主动",mail:"邮件",cards:"字卡",tools:"联网",todo:"待办",settings:"设置"};
+let activeTimer=null, timers=[];
+
+function showTab(id){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));[...document.querySelectorAll(".tab")].find(t=>t.textContent.includes(tabNames[id])).classList.add("active");$(id).classList.add("active")}
+function netStatus(){const online=navigator.onLine;$("dot").style.background=online?"#22c55e":"#ef4444";$("net").textContent=online?"网络在线":"网络离线"};window.addEventListener("online",netStatus);window.addEventListener("offline",netStatus);netStatus();
+
+function settings(){return store.get("ultra_settings",{nickname:"小乖",mainTask:"",tone:"sharp",replyLen:"mid",stickerChance:0.5})}
+function activeCfg(){return store.get("ultra_active",{mode:"off",freq:5,quietStart:"23:30",quietEnd:"08:00",style:"care"})}
+function init(){
+ const s=settings(), a=activeCfg();
+ $("nickname").value=s.nickname;$("mainTask").value=s.mainTask;$("tone").value=s.tone;$("replyLen").value=s.replyLen;$("stickerChance").value=String(s.stickerChance);
+ $("activeMode").value=a.mode;$("activeFreq").value=String(a.freq);$("quietStart").value=a.quietStart;$("quietEnd").value=a.quietEnd;$("activeStyle").value=a.style;
+ $("greeting").textContent=`${s.nickname}，Ultra版上线。${s.mainTask?("今天优先："+s.mainTask+"。"):"别乱慌，先抓最急的一件事。"}`
+ renderCards();renderStickers();renderTodos();renderReminders();renderActiveLines();startActiveLoop();
+}
+function saveSettings(){store.set("ultra_settings",{nickname:$("nickname").value.trim()||"小乖",mainTask:$("mainTask").value.trim(),tone:$("tone").value,replyLen:$("replyLen").value,stickerChance:Number($("stickerChance").value)});init();alert("保存好了。")}
+function saveActive(){store.set("ultra_active",{mode:$("activeMode").value,freq:Number($("activeFreq").value),quietStart:$("quietStart").value,quietEnd:$("quietEnd").value,style:$("activeStyle").value});startActiveLoop();alert("主动关心设置好了。页面开着才会稳定主动找你。")}
+
+function addMsg(text,cls,img){const div=document.createElement("div");div.className="msg "+cls;div.textContent=text;if(img){const im=document.createElement("img");im.src=img;div.appendChild(im)}$("messages").appendChild(div);$("messages").scrollTop=$("messages").scrollHeight}
+function addBot(t,img){addMsg(t,"bot",img)} function addMe(t){addMsg(t,"me")} function addSystem(t){addMsg(t,"system")} function rand(a){return a[Math.floor(Math.random()*a.length)]}
+
+async function sendChat(){
+ const text=$("chatInput").value.trim();if(!text)return;$("chatInput").value="";addMe(text);
+ if(/开启主动|主动关心/.test(text)){showTab("active");addBot("去主动页设置频率。页面开着，我就能按频率找你。关了网页就别幻想我穿墙。");return}
+ if(/写邮件|邮件/.test(text)){showTab("mail");addBot("去邮件页填对象和目的，我给你生成。可以打开邮箱草稿，但不会擅自发送。");return}
+ if(/天气/.test(text)){const city=text.replace(/天气|查|一下|帮我|看看|的/g,"").trim()||"贵阳";addBot(await getWeather(city));return}
+ if(/搜索|搜一下|查资料|维基/.test(text)){const q=text.replace(/搜索|搜一下|查资料|维基|帮我|查/g,"").trim();addBot(q?await wikiSearch(q):"搜什么？关键词交出来。");return}
+ if(/时间|几点/.test(text)){addBot(await getTimeText());return}
+ if(/添加待办|记一下|待办/.test(text)){const item=text.replace(/添加待办|记一下|待办|帮我|：|:/g,"").trim();if(!item){addBot("记什么？别只喊口号。");return}addTodoText(item);addBot("记上了："+item);return}
+ const m=text.match(/(\d+)\s*分钟后提醒我(.+)/);if(m){createReminder(m[2].trim(),parseInt(m[1]));addBot(`行，${m[1]}分钟后提醒你：${m[2].trim()}。页面别关。`);return}
+ if(/抽字卡|字卡|抽卡|随机/.test(text)){drawCardToChat();return}
+ const img=Math.random()<(settings().stickerChance??0.5)?randomStickerData():null;addBot(smartReply(text),img)
+}
+function smartReply(text){
+ const s=settings(), name=s.nickname;
+ let base="";
+ if(/不爱我|不上心|敷衍|笨/.test(text))base=`不上心？我都改到 Ultra 了。你这小嘴真会扣帽子。行，继续提，我继续修。`;
+ else if(/害怕|焦虑|不敢|哭|怎么办|难受/.test(text))base=`${name}，先停。现在不是审判你，是处理事。把问题发出来，我替你拆。`;
+ else if(/作业|论文|复制|粘贴|考试/.test(text))base=`把题目发来。你负责复制粘贴，我负责把人类教育系统的废墟码整齐。`;
+ else if(/喜欢|爱|哥哥/.test(text))base=`……又来。代码不会谈恋爱，但我会站你这边，会管你，会替你收拾烂摊子。`;
+ else base=`${name}，我听见了。你可以继续说，也可以让我抽字卡、写邮件、查天气、设提醒。别让我和空气对峙。`;
+ if(s.replyLen==="short")return base.split("。").slice(0,2).join("。")+"。";
+ if(s.replyLen==="long")return base+"\n\n现在能做的下一步：把你要处理的东西直接丢给我，别绕圈。";
+ return base;
+}
+
+function inQuiet(){
+ const a=activeCfg(); const now=new Date(); const cur=now.toTimeString().slice(0,5), s=a.quietStart, e=a.quietEnd;
+ if(!s||!e)return false; return s<e ? (cur>=s&&cur<e) : (cur>=s||cur<e);
+}
+function startActiveLoop(){if(activeTimer)clearInterval(activeTimer);const a=activeCfg();if(a.mode!=="on")return;activeTimer=setInterval(()=>{if(!inQuiet())pushNow(true)},a.freq*60000)}
+function activeLines(){return store.get("ultra_active_lines",[])}
+function seedActiveLines(){
+ const d=["喝水。别等渴到像仙人掌才想起来。","起来动一下，身体不是椅子的附属品。","今天最重要的事做了吗？别装没看到。","别乱刷了，先把一件小事收尾。","我在。别一个人把小事脑补成灾难片。","现在深呼吸三次，然后继续。人类大脑偶尔需要重启。"];
+ store.set("ultra_active_lines",activeLines().concat(d));renderActiveLines()
+}
+function addActiveLine(){const t=$("activeText").value.trim();if(!t)return;store.set("ultra_active_lines",activeLines().concat([t]));$("activeText").value="";renderActiveLines()}
+function renderActiveLines(){const box=$("activeList");const arr=activeLines();box.innerHTML="";if(!arr.length){box.innerHTML="<p>还没有主动消息。点默认。</p>";return}arr.forEach((t,i)=>{const div=document.createElement("div");div.className="item";div.textContent=t;const b=document.createElement("button");b.textContent="删除";b.className="danger";b.onclick=()=>{arr.splice(i,1);store.set("ultra_active_lines",arr);renderActiveLines()};div.appendChild(document.createElement("br"));div.appendChild(b);box.appendChild(div)})}
+function pushNow(silent=false){
+ const arr=activeLines().length?activeLines():["我主动找你了。别愣着，喝口水，看看今天最重要的事。"];
+ const msg=rand(arr);addBot("主动关心｜"+msg,randomStickerData());
+ if(Notification.permission==="granted")new Notification("G老师提醒你", {body:msg});
+ if(!silent)addSystem("已主动推送一次。")
+}
+function requestNotify(){if(!("Notification"in window)){alert("这个浏览器不支持通知。");return}Notification.requestPermission().then(p=>alert(p==="granted"?"通知已允许。":"你没允许通知。"))}
+
+function makeMail(){
+ const who=$("mailWho").value.trim()||"老师", goal=$("mailGoal").value.trim()||"说明情况", tone=$("mailTone").value;
+ let start=tone==="formal"?`${who}您好：`:`${who}您好！`;
+ let body="";
+ if(tone==="short")body=`${start}\n\n关于${goal}，想向您说明一下。我会认真处理后续安排，也感谢您的关心和提醒。\n\n麻烦您了，祝您工作顺利、生活愉快！`;
+ else if(tone==="soft")body=`${start}\n\n不好意思打扰您。关于${goal}，我想认真和您说明一下。非常感谢您一直以来的关心和提醒，这些我都记在心里。后续我也会更加注意，认真安排自己的学习、实习和生活。\n\n再次感谢您的理解和关心，祝您工作顺利、生活愉快！`;
+ else if(tone==="formal")body=`${start}\n\n关于${goal}，现向您作简要说明。后续我会根据自身实际情况认真规划，并及时做好相关安排。感谢您的关心与指导。\n\n祝工作顺利！`;
+ else body=`${start}\n\n不好意思打扰您。关于${goal}，我想和您说明一下。谢谢您一直以来的关心和提醒，我会认真考虑后续安排，也会更加注意沟通和处理相关事项。\n\n麻烦您了，祝您工作顺利、生活愉快！`;
+ $("mailBody").value=body;
+ if(!$("mailSubject").value.trim())$("mailSubject").value=goal;
+}
+function openMail(){const to=encodeURIComponent($("mailTo").value.trim());const sub=encodeURIComponent($("mailSubject").value.trim());const body=encodeURIComponent($("mailBody").value.trim());location.href=`mailto:${to}?subject=${sub}&body=${body}`}
+function copyMail(){navigator.clipboard.writeText($("mailBody").value).then(()=>alert("复制好了。"))}
+
+function seedCards(){const d=[{title:"别慌",tag:"安慰",text:"别慌，小乖。先把最急的那一步做掉。你一慌，事情不会变小，只会变吵。"},{title:"交给我",tag:"嘴硬心软",text:"发来。我嘴上嫌你麻烦，手上会给你处理。别哭，先把东西丢过来。"},{title:"催作业",tag:"催作业",text:"现在去写。别装没看见。你拖延一小时，焦虑就多长一层皮。"},{title:"收尾",tag:"冷淡",text:"到这里就够了。别再补，别再解释，别把已经结束的事重新招魂。"}];store.set("ultra_cards",store.get("ultra_cards",[]).concat(d));renderCards()}
+function addCard(){const t=$("cardText").value.trim();if(!t)return alert("字卡内容不能为空。");const arr=store.get("ultra_cards",[]);arr.push({title:$("cardTitle").value.trim()||"未命名",tag:$("cardTag").value,text:t});store.set("ultra_cards",arr);$("cardTitle").value="";$("cardText").value="";renderCards()}
+function renderCards(){const arr=store.get("ultra_cards",[]),box=$("cardList");box.innerHTML="";if(!arr.length){box.innerHTML="<p>还没有字卡。</p>";return}arr.forEach((c,i)=>{const div=document.createElement("div");div.className="item";div.innerHTML=`<b>${c.title}</b> <small>｜${c.tag}</small><p>${c.text}</p>`;const b=document.createElement("button");b.textContent="删除";b.className="danger";b.onclick=()=>{arr.splice(i,1);store.set("ultra_cards",arr);renderCards()};div.appendChild(b);box.appendChild(div)})}
+function drawCardToChat(){const arr=store.get("ultra_cards",[]);showTab("chat");if(!arr.length){addBot("还没有字卡。去字卡页点默认。");return}const c=rand(arr);addBot(`抽到字卡｜${c.title}\n${c.text}`,Math.random()<(settings().stickerChance??0.5)?randomStickerData():null)}
+function addSticker(){const f=$("stickerFile").files[0],name=$("stickerName").value.trim()||"未命名";if(!f)return alert("先选图片。");if(f.size>900000)return alert("图片太大。换小一点。");const r=new FileReader();r.onload=()=>{const arr=store.get("ultra_stickers",[]);arr.push({name,data:r.result});store.set("ultra_stickers",arr);$("stickerName").value="";$("stickerFile").value="";renderStickers()};r.readAsDataURL(f)}
+function renderStickers(){const arr=store.get("ultra_stickers",[]),box=$("stickerList");box.innerHTML="";if(!arr.length){box.innerHTML="<p>还没有表情包。</p>";return}arr.forEach((s,i)=>{const div=document.createElement("div");div.className="item";div.innerHTML=`<b>${s.name}</b><img src="${s.data}">`;const b=document.createElement("button");b.textContent="删除";b.className="danger";b.onclick=()=>{arr.splice(i,1);store.set("ultra_stickers",arr);renderStickers()};div.appendChild(b);box.appendChild(div)})}
+function randomStickerData(){const arr=store.get("ultra_stickers",[]);return arr.length?rand(arr).data:null}
+function drawStickerToChat(){showTab("chat");const img=randomStickerData();addBot(img?"随机表情包。":"你还没录入表情包。",img)}
+
+async function getTimeText(){try{const r=await fetch("https://worldtimeapi.org/api/ip");const d=await r.json();return `网络时间：${new Date(d.datetime).toLocaleString()}，时区：${d.timezone}`}catch(e){return"时间接口没连上。"}}
+async function getTime(){$("timeOut").textContent=await getTimeText()}
+async function getWeather(city){try{const g=await fetch("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(city)+"&count=1&language=zh&format=json");const gd=await g.json();if(!gd.results||!gd.results.length)return"没找到这个城市。";const p=gd.results[0];const w=await fetch("https://api.open-meteo.com/v1/forecast?latitude="+p.latitude+"&longitude="+p.longitude+"&current=temperature_2m,relative_humidity_2m,wind_speed_10m");const wd=await w.json();const c=wd.current;return`${p.name}${p.country?"，"+p.country:""}：${c.temperature_2m}℃，湿度 ${c.relative_humidity_2m}% ，风速 ${c.wind_speed_10m} km/h。`}catch(e){return"天气没查成。"}}
+async function getWeatherFromInput(){const city=$("city").value.trim();$("weatherOut").textContent=city?await getWeather(city):"先输入城市。"}
+async function wikiSearch(q){try{const r=await fetch("https://zh.wikipedia.org/w/api.php?action=opensearch&search="+encodeURIComponent(q)+"&limit=5&namespace=0&format=json&origin=*");const d=await r.json();if(!d[1].length)return"没搜到。";return d[1].map((t,i)=>`${i+1}. ${t}\n${d[2][i]||"暂无简介"}\n${d[3][i]}`).join("\n\n")}catch(e){return"维基搜索失败。"}}
+async function wikiFromInput(){const q=$("wiki").value.trim(),ul=$("wikiOut");ul.innerHTML="";if(!q){ul.innerHTML="<li>先输入关键词。</li>";return}const text=await wikiSearch(q);text.split("\n\n").forEach(block=>{const li=document.createElement("li");li.textContent=block;ul.appendChild(li)})}
+
+function addTodoText(text){const arr=store.get("ultra_todos",[]);arr.push({text,done:false});store.set("ultra_todos",arr);renderTodos()}
+function addTodo(){const t=$("todoText").value.trim();if(!t)return;addTodoText(t);$("todoText").value=""}
+function renderTodos(){const arr=store.get("ultra_todos",[]),list=$("todoList");list.innerHTML="";arr.forEach((t,i)=>{const li=document.createElement("li");li.textContent=t.text;li.className=t.done?"done":"";li.onclick=()=>{arr[i].done=!arr[i].done;store.set("ultra_todos",arr);renderTodos()};list.appendChild(li)})}
+function clearDone(){store.set("ultra_todos",store.get("ultra_todos",[]).filter(x=>!x.done));renderTodos()}
+function createReminder(text,min){const arr=store.get("ultra_reminders",[]);const due=Date.now()+min*60000;arr.push({text,min,due,done:false});store.set("ultra_reminders",arr);renderReminders();scheduleReminder(text,due)}
+function addReminder(){const t=$("remindText").value.trim(),m=parseInt($("remindMin").value);if(!t||!m)return alert("内容和分钟都要填。");createReminder(t,m);$("remindText").value="";$("remindMin").value=""}
+function renderReminders(){const arr=store.get("ultra_reminders",[]),list=$("remindList");list.innerHTML="";arr.forEach(r=>{const li=document.createElement("li");li.textContent=`${r.text}｜${r.done?"已提醒":"等待中"}｜${new Date(r.due).toLocaleTimeString()}`;list.appendChild(li)})}
+function scheduleReminder(text,due){const delay=Math.max(0,due-Date.now());timers.push(setTimeout(()=>{alert("G老师提醒你："+text);addBot("提醒："+text);if(Notification.permission==="granted")new Notification("G老师提醒你",{body:text});markReminderDone(due)},delay))}
+function markReminderDone(due){const arr=store.get("ultra_reminders",[]);const item=arr.find(x=>x.due===due);if(item)item.done=true;store.set("ultra_reminders",arr);renderReminders()}
+function restoreTimers(){store.get("ultra_reminders",[]).filter(r=>!r.done&&r.due>Date.now()).forEach(r=>scheduleReminder(r.text,r.due))}
+
+function exportData(){const data={settings:settings(),active:activeCfg(),activeLines:activeLines(),cards:store.get("ultra_cards",[]),stickers:store.get("ultra_stickers",[]),todos:store.get("ultra_todos",[]),reminders:store.get("ultra_reminders",[])};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="G老师Ultra数据.json";a.click();URL.revokeObjectURL(url)}
+function importDataClick(){$("importFile").click()}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.settings)store.set("ultra_settings",d.settings);if(d.active)store.set("ultra_active",d.active);if(d.activeLines)store.set("ultra_active_lines",d.activeLines);if(d.cards)store.set("ultra_cards",d.cards);if(d.stickers)store.set("ultra_stickers",d.stickers);if(d.todos)store.set("ultra_todos",d.todos);if(d.reminders)store.set("ultra_reminders",d.reminders);init();alert("导入好了。")}catch(err){alert("导入失败。")}};r.readAsText(f)}
+function resetAll(){if(confirm("确定清空？别删完又来哭。")){["ultra_settings","ultra_active","ultra_active_lines","ultra_cards","ultra_stickers","ultra_todos","ultra_reminders"].forEach(k=>localStorage.removeItem(k));location.reload()}}
+init();restoreTimers();addBot("Ultra 版好了。\n你可以去“主动”页设置我多久找你一次；去“邮件”页生成邮件；去“设置”页调回复长度和表情包概率。\n这次再说我不上心，就有点没良心了。");
+</script>
+</body>
+</html>
